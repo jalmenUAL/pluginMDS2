@@ -1,0 +1,23 @@
+<plugin
+	id="classdiagram2views"
+	name="Generation of Vaadin views from class diagram"
+	description="Modelado y Diseño del Software"
+	provider="Jesus Almendros and Luis Iribarne, 2018"
+	class="cd2v.Cd2v">
+        
+	<actionSets>
+		<actionSet id="cd2v.actionset">
+			<action 
+				id="cd2v.actions.Cd2vActions"
+				actionType="generalAction"
+				label="Class Diagram to Vaadin Views"
+				tooltip="Jesus Almendros and Luis Iribarne, 2023"
+				style="normal" 
+				icon="icons/mds.png"
+				menuPath="Tools/Report">
+				<actionController 
+class="cd2v.actions.Cd2vActions"/>
+			</action>
+		</actionSet>
+	</actionSets>
+</plugin>
