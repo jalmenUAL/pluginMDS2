@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Iterator;
 
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
@@ -17,6 +18,7 @@ import com.vp.plugin.action.VPAction;
 import com.vp.plugin.action.VPActionController;
 import com.vp.plugin.model.IActor;
 import com.vp.plugin.model.IModelElement;
+import com.vp.plugin.model.IRelationship;
 import com.vp.plugin.model.IStep;
 import com.vp.plugin.model.IStepContainer;
 import com.vp.plugin.model.IUseCase;
@@ -56,14 +58,17 @@ public class Cd2vActions implements VPActionController {
 			for (int i = 0; i < models.length; i++) {
 				IModelElement modelElement = models[i];
 				IUseCase useCase = (IUseCase)modelElement;
-				
-				
+				if (inheritanceUseCases(useCase)) {
+				if (useCase.hasStereotype("business") || useCase.hasStereotype("event"))
+				{}
+				else {
 				
 				String Content =  generateTSUseCase(useCase);
 				String Content2 =  generateJavaUseCase(useCase);
 				FileWriter writer;
 				FileWriter writer2;
 				try {
+					
 					writer = new FileWriter(new File(file, "vista-"+clean(useCase.getName()).toLowerCase()+".ts"));
 					writer.write(Content);
 					writer.close();
@@ -72,12 +77,30 @@ public class Cd2vActions implements VPActionController {
 					writer2.close();
 					result = "Success! Code generated for vista-"+clean(useCase.getName()).toLowerCase()+".ts";
 					result2 = "Success! Code generated for Vista"+upper(clean(useCase.getName()).toLowerCase())+".java";
+					if (useCase.hasStereotype("list")) {
+						String Content3 =  generateTSUseCaseItem(useCase);
+						String Content4 =  generateJavaUseCaseItem(useCase);
+						writer = new FileWriter(new File(file, "vista-"+clean(useCase.getName()).toLowerCase()+"_item.ts"));
+						writer.write(Content3);
+						writer.close();
+						writer2 = new FileWriter(new File(file, "Vista"+upper(clean(useCase.getName()).toLowerCase())+"_item.java"));
+						writer2.write(Content4);
+						writer2.close();
+						
+					}
+					
 					viewManager.showMessage(result);
 					viewManager.showMessage(result2);
+					 
+					
+					
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}	
+				}
+				}
+				 
 				
 			}
 				
@@ -88,9 +111,11 @@ public class Cd2vActions implements VPActionController {
 				for (int i = 0; i < models2.length; i++) {
 					IModelElement modelElement = models2[i];
 					IActor actor = (IActor)modelElement;
-					
-					
-					
+					if (inheritanceActors(actor)) { 
+					if (actor.hasStereotype("external"))
+					{}
+					else
+					{
 					String Content =  generateTSActor(actor);
 					String Content2 =  generateJavaActor(actor);
 					FileWriter writer;
@@ -110,6 +135,8 @@ public class Cd2vActions implements VPActionController {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}	
+					}
+					}
 			 
 				}	
 			 
@@ -128,12 +155,42 @@ public class Cd2vActions implements VPActionController {
 		return s;
 	}
 	
-	public String generateTSUseCase(IUseCase actor) {
+	public String generateTSUseCase(IUseCase usecase) {
 		
 		String content = "import { LitElement, html, css, customElement } from 'lit-element';\r\n"
 				+ "\r\n"
-				+ "@customElement('vista-"+clean(actor.getName()).toLowerCase()+"')\r\n"
-				+ "export class "+"Vista"+upper(clean(actor.getName()).toLowerCase())+" extends LitElement {\r\n"
+				+ "@customElement('vista-"+clean(usecase.getName()).toLowerCase()+"')\r\n"
+				+ "export class "+"Vista"+upper(clean(usecase.getName()).toLowerCase())+" extends LitElement {\r\n"
+				+ "  static get styles() {\r\n"
+				+ "    return css`\r\n"
+				+ "      :host {\r\n"
+				+ "          display: block;\r\n"
+				+ "          height: 100%;\r\n"
+				+ "      }\r\n"
+				+ "      `;\r\n"
+				+ "  }\r\n"
+				+ "\r\n"
+				+ "  render() {\r\n"
+				+ "    return html``;\r\n"
+				+ "  }\r\n"
+				+ "\r\n"
+				+ "  // Remove this method to render the contents of this view inside Shadow DOM\r\n"
+				+ "  createRenderRoot() {\r\n"
+				+ "    return this;\r\n"
+				+ "  }\r\n"
+				+ "}\r\n"
+				+ "";
+		
+		return content;
+		
+	}
+	
+public String generateTSUseCaseItem(IUseCase usecase) {
+		
+		String content = "import { LitElement, html, css, customElement } from 'lit-element';\r\n"
+				+ "\r\n"
+				+ "@customElement('vista-"+clean(usecase.getName()).toLowerCase()+"_item')\r\n"
+				+ "export class "+"Vista"+upper(clean(usecase.getName()).toLowerCase())+"_item extends LitElement {\r\n"
 				+ "  static get styles() {\r\n"
 				+ "    return css`\r\n"
 				+ "      :host {\r\n"
@@ -158,7 +215,7 @@ public class Cd2vActions implements VPActionController {
 		
 	}
 
-	public String generateJavaUseCase(IUseCase actor) {
+	public String generateJavaUseCase(IUseCase usecase) {
 		
 		String content = "package vistas;\r\n"
 				+ "\r\n"
@@ -166,11 +223,33 @@ public class Cd2vActions implements VPActionController {
 				+ "import com.vaadin.flow.component.dependency.JsModule;\r\n"
 				+ "import com.vaadin.flow.component.littemplate.LitTemplate;\r\n"
 				+ "\r\n"
-				+ "@Tag(\"vista-"+clean(actor.getName()).toLowerCase()+"\")\r\n"
-				+ "@JsModule(\"./src/vista-"+clean(actor.getName()).toLowerCase()+".ts\")\r\n"
-				+ "public class Vista"+upper(clean(actor.getName()).toLowerCase())+" extends LitTemplate {\r\n"
+				+ "@Tag(\"vista-"+clean(usecase.getName()).toLowerCase()+"\")\r\n"
+				+ "@JsModule(\"./views/vista-"+clean(usecase.getName()).toLowerCase()+".ts\")\r\n"
+				+ "public class Vista"+upper(clean(usecase.getName()).toLowerCase())+" extends LitTemplate {\r\n"
 				+ "\r\n"
-				+ "    public Vista"+upper(clean(actor.getName()).toLowerCase())+"() {\r\n"
+				+ "    public Vista"+upper(clean(usecase.getName()).toLowerCase())+"() {\r\n"
+				+ "        // You can initialise any data required for the connected UI components here.\r\n"
+				+ "    }\r\n"
+				+ "\r\n"
+				+ "}";
+		
+		return content;
+		
+	}
+	
+public String generateJavaUseCaseItem(IUseCase usecase) {
+		
+		String content = "package vistas;\r\n"
+				+ "\r\n"
+				+ "import com.vaadin.flow.component.Tag;\r\n"
+				+ "import com.vaadin.flow.component.dependency.JsModule;\r\n"
+				+ "import com.vaadin.flow.component.littemplate.LitTemplate;\r\n"
+				+ "\r\n"
+				+ "@Tag(\"vista-"+clean(usecase.getName()).toLowerCase()+"_item\")\r\n"
+				+ "@JsModule(\"./views/vista-"+clean(usecase.getName()).toLowerCase()+"_item.ts\")\r\n"
+				+ "public class Vista"+upper(clean(usecase.getName()).toLowerCase())+"_item extends LitTemplate {\r\n"
+				+ "\r\n"
+				+ "    public Vista"+upper(clean(usecase.getName()).toLowerCase())+"_item() {\r\n"
 				+ "        // You can initialise any data required for the connected UI components here.\r\n"
 				+ "    }\r\n"
 				+ "\r\n"
@@ -219,7 +298,7 @@ public String generateJavaActor(IActor actor) {
 			+ "import com.vaadin.flow.component.littemplate.LitTemplate;\r\n"
 			+ "\r\n"
 			+ "@Tag(\"vista-"+clean(actor.getName()).toLowerCase()+"\")\r\n"
-			+ "@JsModule(\"./src/vista-"+clean(actor.getName()).toLowerCase()+".ts\")\r\n"
+			+ "@JsModule(\"./views/vista-"+clean(actor.getName()).toLowerCase()+".ts\")\r\n"
 			+ "public class Vista"+upper(clean(actor.getName()).toLowerCase())+" extends LitTemplate {\r\n"
 			+ "\r\n"
 			+ "    public Vista"+upper(clean(actor.getName()).toLowerCase())+"() {\r\n"
@@ -231,6 +310,30 @@ public String generateJavaActor(IActor actor) {
 	return content;
 	
 }
+
+ public Boolean inheritanceUseCases(IUseCase usecase) {
+	 int count = 0;
+	 Iterator genIter = usecase.toRelationshipIterator();
+	 while (genIter.hasNext()) {
+			IRelationship relationship = (IRelationship) genIter.next();
+			if (relationship.getModelType() == "Generalization") {
+				count = count+1;
+			}
+	 }
+	 return count==0;
+ }
+ 
+ public Boolean inheritanceActors(IActor actor) {
+	 int count = 0;
+	 Iterator genIter = actor.toRelationshipIterator();
+	 while (genIter.hasNext()) {
+			IRelationship relationship = (IRelationship) genIter.next();
+			if (relationship.getModelType() == "Generalization") {
+				count = count+1;
+			}
+	 }
+	 return count==0;
+ }
 
 	public void update(VPAction action) {
 	}
